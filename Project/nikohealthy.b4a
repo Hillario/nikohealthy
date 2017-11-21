@@ -1,0 +1,475 @@
+﻿Version=6.5
+NumberOfModules=10
+Module1=HttpUtils2Service
+Module2=HttpJob
+Module3=global
+Module4=signin
+Module5=cancercare
+Module6=login
+Module7=loginselecto
+Module8=contactsportal
+Module9=contactsportalusers
+Module10=signinspec
+Build1=Default,nikohealthy.com
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: http://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="14"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~SetApplicationAttribute(android:theme, "@android:style/Theme.Holo")~\n~'End of default text.~\n~
+IconFile=
+NumberOfFiles=10
+File1=cancercare.bal
+File2=contacts.bal
+File3=contactsusers.bal
+File4=homepanels.bal
+File5=homescreen.bal
+File6=loginselect.bal
+File7=main.bal
+File8=register.bal
+File9=registerspec.bal
+File10=signin.bal
+NumberOfLibraries=5
+Library1=core
+Library2=http
+Library3=json
+Library4=phone
+Library5=stringutils
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: NikoHealthy
+	#VersionCode: 1
+	#VersionName: 
+	'SupportedOrientations possible values: unspecified, landscape or portrait.		
+	#SupportedOrientations: portrait
+	#CanInstallToExternalStorage: False
+	
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: True
+	#IncludeTitle: False
+#End Region
+
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'These variables can be accessed from all modules.	
+	Dim tm As Timer
+Private home="HOME" As String
+Private thread="THREAD" As String
+Private cancer="CANCER" As String
+Private nutrition="NUTRITION" As String
+Private weight="WEIGHT" As String
+Private physical="PHYSICAL" As String
+Private drug="DRUG" As String
+Private alcohol="ALCOHOL" As String
+Private diabetes="DIABETES" As String
+Private cardiac="CARDIAC" As String
+Private metabolic="METABOLIC" As String
+Private organ="ORGAN" As String
+	Private status="STATUS" As String
+	Dim userid As String
+	Dim entity As String
+	Dim myid As String
+	Dim mytask As String
+	Dim spec As String
+	Dim tableuser As String
+	Dim tablespec As String
+End Sub
+
+Sub Globals
+	'These global variables will be redeclared each time the activity is created.
+	'These variables can only be accessed from this module.		
+	
+	
+	Private ScrollView1 As ScrollView
+	Private lblusername As Label
+	Private lblemail As Label
+	Private lbltime As Label
+	Private ImageView1 As ImageView		
+	
+	
+	Private lblthreadcancer As Label
+	Private lblthreadnutrition As Label
+	Private lblthreadweight As Label
+	Private lblthreadphysical As Label
+	Private lblthreaddrug As Label
+	Private lblthreadalcohol As Label
+	Private lblthreaddiabetes As Label
+	Private lblthreadcardiac As Label
+	Private lblthreadmetabolic As Label
+	Private lblthreadorgan As Label
+	Private lblthreadmedical As Label
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	'Do not forget to load the layout file created with the visual designer. For example:
+	If Not(File.Exists(File.DirInternal,"session")) Then
+      StartActivity(loginselecto)
+	  Else	  
+	  login.logged=True	 	  
+   End If    
+    Activity.LoadLayout("homescreen")  
+    ScrollView1.Panel.LoadLayout("homepanels")
+	tm.Initialize("hometime",1000)
+	tm.Enabled=True	
+	Activity.AddMenuItem("Profile","profile")
+	Activity.AddMenuItem("LogOut","logout")		
+End Sub
+
+
+Sub Activity_Resume		
+ If loginselecto.userbuttonpressed==True Then
+entity="user"
+myid="User_id"
+mytask="occupation"
+Else If loginselecto.specbuttonpressed==True Then
+entity="specialist"
+myid="Spec_id"
+mytask="Specialization"
+End If   
+	userid=File.ReadString(File.DirInternal,"session")
+	Dim query="SELECT * FROM "&entity&" WHERE "&myid&"='"&userid&"'" As String
+	ExecuteRemoteQuery(query, home)
+	Dim updatequery="UPDATE "&entity&" SET STATUS='online' WHERE "&myid&"='"&userid&"'" As String
+	ExecuteRemoteQuery(updatequery,status)
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)	
+
+End Sub
+
+Sub ExecuteRemoteQuery(Query As String, JobName As String)
+	Dim job As HttpJob
+	job.Initialize(JobName, Me)
+	job.PostString(global.API,Query)
+End Sub
+
+Sub JobDone(Job As HttpJob)
+		ProgressDialogHide	
+		Dim u As StringUtils
+		Try
+	If Job.Success Then	   
+		Dim res As String
+		res = Job.GetString
+		Log("Response from server: " & res)
+		Dim parser As JSONParser
+		parser.Initialize(res)		
+			If Job.JobName==home Then		
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+				Dim myuserid As String=rootMap.Get(myid)
+				Dim firstname As String=rootMap.Get("FirstName")
+				Dim middlename As String=rootMap.Get("MiddleName")
+				Dim lastname As String =rootMap.Get("LastName")
+				Dim age As String=rootMap.Get("Age")
+				Dim maritalstatus As String=rootMap.Get("maritalstatus")
+				Dim phone As String=rootMap.Get("Phone")
+				Dim email As String=rootMap.Get("Email")
+				Dim username As String=rootMap.Get("Username")
+				Dim password As String=rootMap.Get("Password")
+				Dim gender As String=rootMap.Get("Gender")
+				Dim residence As String=rootMap.Get("Residence")
+				Dim myweight As String=rootMap.Get("weight")
+				Dim height As String=rootMap.Get("height")
+				Dim task As String=rootMap.Get(mytask)
+				Dim medicalhistory As String=rootMap.Get("medicalhistory")
+				Dim image As String=rootMap.Get("Image")
+				Dim updatedat As String=rootMap.Get("Updated_at")
+				Next
+				lblusername.Text=username&"("&entity&")"
+				lblemail.Text=email
+			Else If Job.JobName==thread Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")														
+				Next
+				lblthreadcancer.Text=mycount
+				lblthreadalcohol.Text=mycount
+				lblthreadcardiac.Text=mycount
+				lblthreaddiabetes.Text=mycount
+				lblthreaddrug.Text=mycount
+				lblthreadmetabolic.Text=mycount
+				lblthreadnutrition.Text=mycount
+				lblthreadorgan.Text=mycount
+				lblthreadphysical.Text=mycount
+				lblthreadweight.Text=mycount
+			Else If Job.JobName==cancer Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreadcancer.Text=mycount
+			Else If Job.JobName==nutrition Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreadnutrition.Text=mycount
+			Else If Job.JobName==weight Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreadweight.Text=mycount
+			Else If Job.JobName==physical Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreadphysical.Text=mycount
+			Else If Job.JobName==drug Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreaddrug.Text=mycount
+			Else If Job.JobName==alcohol Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreadalcohol.Text=mycount
+			Else If Job.JobName==diabetes Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreaddiabetes.Text=mycount
+			Else If Job.JobName==cardiac Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreadcardiac.Text=mycount
+			Else If Job.JobName==metabolic Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreadmetabolic.Text=mycount
+			Else If Job.JobName==organ Then
+				Dim PARAMETERS As List
+				PARAMETERS = parser.NextArray 'returns a list with maps
+				For Each rootMap As Map In PARAMETERS
+					Dim mycount As String=rootMap.Get("Count")
+				Next
+				lblthreadorgan.Text=mycount
+	End If	
+	Else
+	'ToastMessageShow("Error: " & Job.ErrorMessage, True)	
+		ToastMessageShow("Failed, make sure you have an internet connection.", True)			
+	End If
+	Catch
+		Log(LastException.Message)
+	End Try
+	Job.Release
+End Sub
+
+Sub btnBack_Click
+'update online status in db
+	 Dim updatequery="UPDATE "&entity&" SET STATUS='offline' WHERE "&myid&"='"&userid&"'" As String
+	 ExecuteRemoteQuery(updatequery,status)
+	Activity.Finish	
+End Sub
+
+Sub hometime_Tick
+lbltime.Text=global.currentDateTime
+End Sub
+
+Sub Activity_KeyPress (KeyCode As Int) As Boolean                     
+   If KeyCode = KeyCodes.KEYCODE_BACK Then                           
+      'update online status in db
+	 Dim updatequery="UPDATE "&entity&" SET STATUS='offline' WHERE "&myid&"='"&userid&"'" As String
+	 ExecuteRemoteQuery(updatequery,status)
+	  Activity.Finish 
+	  Return True                                           
+   Else
+      Return False
+   End If 
+End Sub
+
+
+
+Sub btnmore_Click
+	ToastMessageShow("Use the options hardware button on your device",True)
+End Sub
+
+Sub profile_Click
+   ToastMessageShow("This is my profile!",True)
+End Sub
+
+Sub threadcount    'call this on activity create
+	'variables
+	'query
+	If entity="user" Then
+		Dim querycancer="SELECT COUNT(*) As Count From specialist where Specialization='Cancer Care & Prevention'" As String
+		Dim querynutrition="SELECT COUNT(*) As Count From specialist where Specialization='Nutrition Guide'" As String
+		Dim queryweight="SELECT COUNT(*) As Count From specialist where Specialization='Weight Management'" As String
+		Dim queryphysical="SELECT COUNT(*) As Count From specialist where Specialization='Physical Activity Guide'" As String
+		Dim querydrug="SELECT COUNT(*) As Count From specialist where Specialization='Drug & Substance Abuse Control'" As String
+		Dim queryalcohol="SELECT COUNT(*) As Count From specialist where Specialization='Alcohol Intoxication Control'" As String
+		Dim querydiabetes="SELECT COUNT(*) As Count From specialist where Specialization='Diabetes Corner'" As String
+		Dim querycardiac="SELECT COUNT(*) As Count From specialist where Specialization='Cardiovascular Disease Control'" As String
+		Dim querymetabolic="SELECT COUNT(*) As Count From specialist where Specialization='Inherited Metabolic Disorders'" As String
+		Dim queryorgan="SELECT COUNT(*) As Count From specialist where Specialization='Organ Care'" As String
+		Else If entity="specialist" Then
+		Dim countqueryuser="SELECT COUNT(*) As Count From user" As String
+	End If
+	'executeremotequery
+	ExecuteRemoteQuery(countqueryuser,thread)
+	ExecuteRemoteQuery(querycancer,cancer)
+	ExecuteRemoteQuery(querynutrition,nutrition)
+	ExecuteRemoteQuery(queryweight,weight)
+	ExecuteRemoteQuery(queryphysical,physical)
+	ExecuteRemoteQuery(querydrug,drug)
+	ExecuteRemoteQuery(queryalcohol,alcohol)
+	ExecuteRemoteQuery(querydiabetes,diabetes)
+	ExecuteRemoteQuery(querycardiac,cardiac)
+	ExecuteRemoteQuery(querymetabolic,metabolic)
+	ExecuteRemoteQuery(queryorgan,organ)
+End Sub
+
+Sub btnchatcancer_Click
+	spec="Cancer Care & Prevention"
+	tableuser="cancercareuser"
+	tablespec="cancercarespec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+	Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnchatnutrition_Click
+	spec="Nutrition Guide"
+	tableuser="nutritionuser"
+	tablespec="nutritionspec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+		Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnchatweight_Click
+	spec="Weight Management"
+	tableuser="weightuser"
+	tablespec="weightspec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+		Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnchatphysical_Click
+	spec="Physical Activity Guide"
+	tableuser="physicaluser"
+	tablespec="physicalspec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+		Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnchatdrug_Click
+	spec="Drug & Substance Abuse Control"
+	tableuser="druguser"
+	tablespec="drugspec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+		Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnchatalcohol_Click
+	spec="Alcohol Intoxication Control"
+	tableuser="alcoholuser"
+	tablespec="alcoholspec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+		Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnchatdiabetes_Click
+	spec="Diabetes Corner"
+	tableuser="diabetesuser"
+	tablespec="diabetesspec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+		Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnchatcardiac_Click
+	spec="Cardiovascular Disease Control"
+	tableuser="cardiacuser"
+	tablespec="cardiacspec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+		Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnchatmetabolic_Click
+	spec="Inherited Metabolic Disorders"
+	tableuser="metabolicuser"
+	tablespec="metabolicspec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+		Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnchatorgan_Click
+	spec="Organ Care"
+	tableuser="organuser"
+	tablespec="organspec"
+	If entity="user" Then
+	StartActivity(contactsportal)
+		Activity.Finish
+	Else If entity="specialist" Then	
+	'Start users contacts activity
+	StartActivity(contactsportalusers)
+		Activity.Finish
+	End If
+End Sub
+Sub btnmedical_Click
+	ToastMessageShow("Information update in progress...",True)
+End Sub
+Sub btnlogout_Click
+	File.Delete(File.DirInternal,"session")
+Activity.Finish
+End Sub
